@@ -31,7 +31,6 @@
       overflow-x:hidden;
     }
 
-    /* ── BG Effects ── */
     .bg-mesh {
       position:fixed; inset:0; z-index:0; pointer-events:none;
       background:
@@ -53,7 +52,6 @@
       -webkit-mask-image:radial-gradient(ellipse at center, transparent 20%, black 100%);
     }
 
-    /* ── Screens ── */
     .screen {
       position:relative; z-index:1;
       min-height:100vh;
@@ -68,7 +66,6 @@
       to   { opacity:1; transform:translateY(0); }
     }
 
-    /* ── Logo ── */
     .logo { display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:10px; }
     .logo-icon {
       width:48px; height:48px;
@@ -86,7 +83,6 @@
     }
     .tagline { color:var(--muted); font-size:15px; text-align:center; margin-bottom:44px; font-weight:300; }
 
-    /* ── Landing Cards ── */
     .cards-grid {
       display:grid; grid-template-columns:1fr 1fr;
       gap:14px; width:100%; max-width:480px;
@@ -110,7 +106,6 @@
     .card h2  { font-size:20px; font-weight:700; margin-bottom:6px; }
     .card p   { color:var(--muted); font-size:13px; }
 
-    /* ── Panel ── */
     .panel {
       background:var(--glass);
       border:1px solid var(--glass-b);
@@ -121,7 +116,6 @@
     .panel-title { font-size:22px; font-weight:700; margin-bottom:5px; }
     .panel-sub   { color:var(--muted); font-size:14px; margin-bottom:26px; }
 
-    /* ── Back Button ── */
     .back-btn {
       display:flex; align-items:center; gap:6px;
       background:transparent; border:none; color:var(--muted);
@@ -130,7 +124,6 @@
     }
     .back-btn:hover { color:var(--text); }
 
-    /* ── Dropzone ── */
     .dropzone {
       border:2px dashed rgba(0,212,255,.3);
       border-radius:16px; padding:36px 20px;
@@ -152,7 +145,6 @@
     .dz-text { font-size:16px; font-weight:600; margin-bottom:6px; }
     .dz-hint { font-size:12px; color:var(--muted); }
 
-    /* ── Code Box ── */
     .code-box {
       background:rgba(0,212,255,.07);
       border:1px solid rgba(0,212,255,.25);
@@ -179,7 +171,6 @@
     }
     .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
 
-    /* ── Code Input ── */
     .code-input {
       width:100%;
       background:rgba(255,255,255,.05);
@@ -192,7 +183,6 @@
     }
     .code-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--glow); }
 
-    /* ── Buttons ── */
     .btn {
       width:100%; padding:15px; border:none; border-radius:14px;
       font-size:16px; font-weight:700; cursor:pointer;
@@ -211,7 +201,6 @@
     }
     .btn-ghost:hover { color:var(--text); border-color:var(--muted); }
 
-    /* ── File Info ── */
     .file-info {
       display:flex; align-items:center; gap:12px;
       padding:13px 15px;
@@ -224,7 +213,6 @@
     .fi-name { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .fi-size { font-size:12px; color:var(--muted); }
 
-    /* ── Progress ── */
     .prog-wrap { margin:16px 0; }
     .prog-info { display:flex; justify-content:space-between; font-size:13px; color:var(--muted); margin-bottom:8px; }
     .prog-bar  { height:7px; background:rgba(255,255,255,.06); border-radius:4px; overflow:hidden; }
@@ -235,7 +223,6 @@
       box-shadow:0 0 12px var(--glow);
     }
 
-    /* ── Stats ── */
     .stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:14px 0; }
     .stat-box {
       background:rgba(255,255,255,.03);
@@ -245,7 +232,6 @@
     .stat-val   { font-size:15px; font-weight:700; color:var(--accent); }
     .stat-label { font-size:11px; color:var(--muted); margin-top:2px; }
 
-    /* ── Status Badge ── */
     .status {
       display:flex; align-items:center; gap:10px;
       padding:12px 15px; border-radius:10px;
@@ -265,7 +251,6 @@
       50%    { opacity:.3; transform:scale(.7); }
     }
 
-    /* ── Loader ── */
     .dots { display:flex; justify-content:center; gap:7px; margin:24px 0; }
     .dots span {
       width:9px; height:9px; border-radius:50%;
@@ -279,14 +264,12 @@
       50%    { transform:translateY(-11px); opacity:1;  }
     }
 
-    /* ── Video ── */
     .video-wrap {
       width:100%; border-radius:14px; overflow:hidden;
       background:#000; margin-top:14px;
     }
     video { width:100%; display:block; max-height:62vh; }
 
-    /* ── Divider ── */
     .divider {
       display:flex; align-items:center; gap:12px;
       margin:18px 0; color:var(--muted); font-size:12px;
@@ -295,7 +278,6 @@
       content:''; flex:1; height:1px; background:var(--glass-b);
     }
 
-    /* ── Success ── */
     .success-icon {
       font-size:50px; text-align:center;
       display:block; margin:16px 0;
@@ -306,13 +288,25 @@
       to  { transform:scale(1); opacity:1; }
     }
 
-    /* ── Footer note ── */
     .note {
       color:var(--muted); font-size:12px;
       text-align:center; margin-top:28px;
       max-width:320px; line-height:1.85;
     }
     .note span { color:var(--accent); }
+
+    .debug-info {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: left;
+      direction: ltr;
+      max-height: 100px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
@@ -345,6 +339,10 @@
       الفيديو لا يُرفع لأي سيرفر •<br>
       جودة أصلية بدون ضغط أو تشويه
     </p>
+    
+    <div class="debug-info" id="debug-info">
+      🟢 جاهز للعمل...
+    </div>
   </div>
 
   <!-- ════════════════════ SEND ════════════════════ -->
@@ -352,7 +350,6 @@
     <div class="panel">
       <button class="back-btn" onclick="goHome()">&#8592; رجوع</button>
 
-      <!-- Step 1: pick file -->
       <div id="send-s1">
         <div class="panel-title">📤 أرسل فيديو</div>
         <div class="panel-sub">اختر الفيديو من جهازك</div>
@@ -363,9 +360,10 @@
           <div class="dz-text">اضغط لاختيار فيديو</div>
           <div class="dz-hint">أو اسحب وأفلت • كل صيغ الفيديو مدعومة</div>
         </div>
+        
+        <div class="debug-info" id="send-debug"></div>
       </div>
 
-      <!-- Step 2: code + progress -->
       <div id="send-s2" style="display:none">
         <div class="panel-title">انتظر الاتصال</div>
         <div class="panel-sub">شارك الكود مع الجهاز الثاني</div>
@@ -389,7 +387,6 @@
           <span id="send-status-txt">في انتظار اتصال الجهاز الثاني…</span>
         </div>
 
-        <!-- transfer progress (hidden until connected) -->
         <div id="send-prog" style="display:none">
           <div class="prog-wrap">
             <div class="prog-info">
@@ -405,12 +402,13 @@
           </div>
         </div>
 
-        <!-- done -->
         <div id="send-done" style="display:none;text-align:center">
           <span class="success-icon">✅</span>
           <p style="font-weight:700;margin-bottom:6px">اكتمل الإرسال!</p>
           <p style="color:var(--muted);font-size:14px">الفيديو وصل للجهاز الثاني بجودة كاملة</p>
         </div>
+        
+        <div class="debug-info" id="send-debug2"></div>
       </div>
     </div>
   </div>
@@ -420,7 +418,6 @@
     <div class="panel">
       <button class="back-btn" onclick="goHome()">&#8592; رجوع</button>
 
-      <!-- Step 1: enter code -->
       <div id="recv-s1">
         <div class="panel-title">🎬 استقبل فيديو</div>
         <div class="panel-sub">أدخل الكود من الجهاز الأول</div>
@@ -435,16 +432,16 @@
         <div class="status waiting" style="font-size:13px;line-height:1.7">
           💡 افتح نفس هذا الملف على الجهاز الأول ← اختر "أرسل فيديو" ← انسخ الكود وألصقه هنا
         </div>
+        
+        <div class="debug-info" id="recv-debug"></div>
       </div>
 
-      <!-- Step 2: connecting / downloading / player -->
       <div id="recv-s2" style="display:none">
         <div class="panel-title" id="r-title">جارٍ الاتصال…</div>
         <div class="panel-sub"  id="r-sub">يرجى الانتظار</div>
 
         <div id="r-loader"><div class="dots"><span></span><span></span><span></span></div></div>
 
-        <!-- progress -->
         <div id="r-prog" style="display:none">
           <div class="file-info">
             <span class="fi-icon">🎬</span>
@@ -467,7 +464,6 @@
           </div>
         </div>
 
-        <!-- video player -->
         <div id="r-player" style="display:none">
           <span class="success-icon">🎉</span>
           <p style="text-align:center;font-weight:700;margin-bottom:14px">وصل الفيديو بجودة كاملة!</p>
@@ -476,38 +472,99 @@
           </div>
           <button class="btn btn-ghost" onclick="dlVideo()">⬇️ تحميل الفيديو</button>
         </div>
+        
+        <div class="debug-info" id="recv-debug2"></div>
       </div>
     </div>
   </div>
 
   <script>
     /* ─────────────────────────────────────────
-       State
+       إعدادات PeerJS - استخدام خادم موثوق
     ───────────────────────────────────────── */
+    
+    // قائمة بخوادم PeerJS موثوقة (نجربهم بالترتيب)
+    const PEER_SERVERS = [
+      {
+        // الخادم الرسمي لـ PeerJS (الأساسي)
+        host: '0.peerjs.com',
+        port: 443,
+        secure: true,
+        path: '/'
+      },
+      {
+        // خادم احتياطي 1
+        host: 'peerjs-server.herokuapp.com',
+        port: 443,
+        secure: true,
+        path: '/'
+      },
+      {
+        // خادم احتياطي 2 - بدون SSL أحياناً يعمل أفضل
+        host: 'peerjs.herokuapp.com',
+        port: 80,
+        secure: false,
+        path: '/'
+      }
+    ];
+    
+    let currentServerIndex = 0;
+    
+    // خوادم STUN متعددة لتحسين الاتصال
+    const ICE_SERVERS = [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
+      { urls: 'stun:stun.services.mozilla.com' },
+      { urls: 'stun:stun.stunprotocol.org:3478' }
+    ];
+
     let peer = null, sendConn = null;
     let videoFile = null, videoBlob = null;
     let chunks = [], totalSize = 0, receivedSize = 0;
     let fileType = 'video/mp4', fileName = '';
     let lastUpd = { t:0, b:0 };
-    const CHUNK = 65536; // 64 KB
+    const CHUNK = 65536;
 
-    // PeerJS Server Config - خادم عام مجاني
-    const PEER_CONFIG = {
-      config: { 
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' },
-          { urls: 'stun:stun3.l.google.com:19302' },
-          { urls: 'stun:stun4.l.google.com:19302' }
-        ] 
-      },
-      host: '0.peerjs.com',
-      port: 443,
-      secure: true,
-      path: '/',
-      debug: 2 // لتفعيل السجلات للمساعدة في اكتشاف الأخطاء
-    };
+    // دالة لإضافة سجل تصحيح
+    function debug(msg, isError = false) {
+      console.log(isError ? '❌' : '🟢', msg);
+      
+      const debugElements = [
+        'debug-info', 'send-debug', 'send-debug2', 'recv-debug', 'recv-debug2'
+      ];
+      
+      debugElements.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+          const time = new Date().toLocaleTimeString('ar-SA');
+          el.innerHTML = `[${time}] ${msg}<br>` + el.innerHTML;
+          if(isError) {
+            el.style.color = '#ff4d4d';
+          }
+        }
+      });
+    }
+
+    // إنشاء Peer مع تجربة خوادم مختلفة
+    function createPeerWithFallback() {
+      const server = PEER_SERVERS[currentServerIndex];
+      debug(`🔄 محاولة الاتصال بالخادم: ${server.host}:${server.port} (محاولة ${currentServerIndex + 1}/${PEER_SERVERS.length})`);
+      
+      const config = {
+        config: { iceServers: ICE_SERVERS },
+        host: server.host,
+        port: server.port,
+        secure: server.secure,
+        path: server.path,
+        debug: 3,
+        pingInterval: 5000
+      };
+      
+      return new Peer(config);
+    }
 
     /* ─────────────────────────────────────────
        Navigation
@@ -519,24 +576,16 @@
     
     function goHome() {
       if(peer){ 
-        try{ 
-          peer.destroy(); 
-        }catch(e){
-          console.log('Peer destroy error:', e);
-        }
+        try{ peer.destroy(); } catch(e){}
         peer = null; 
       }
       if(sendConn) {
         try { sendConn.close(); } catch(e) {}
         sendConn = null;
       }
-      chunks = []; 
-      totalSize = 0; 
-      receivedSize = 0;
-      videoBlob = null;
-      videoFile = null;
+      chunks = []; totalSize = 0; receivedSize = 0;
+      videoBlob = null; videoFile = null;
       
-      // reset send
       document.getElementById('send-s1').style.display = 'block';
       document.getElementById('send-s2').style.display = 'none';
       document.getElementById('send-prog').style.display = 'none';
@@ -546,7 +595,6 @@
       document.getElementById('send-status-txt').textContent = 'في انتظار اتصال الجهاز الثاني…';
       document.getElementById('peer-code').textContent = 'جارٍ التحضير…';
       
-      // reset receive
       document.getElementById('recv-s1').style.display = 'block';
       document.getElementById('recv-s2').style.display = 'none';
       document.getElementById('r-loader').style.display = 'block';
@@ -554,11 +602,20 @@
       document.getElementById('r-player').style.display = 'none';
       document.getElementById('code-input').value = '';
       
+      currentServerIndex = 0;
+      
       show('screen-landing');
     }
     
-    function startSend()    { show('screen-send'); }
-    function startReceive() { show('screen-receive'); }
+    function startSend() { 
+      show('screen-send'); 
+      debug('تم فتح صفحة الإرسال');
+    }
+    
+    function startReceive() { 
+      show('screen-receive'); 
+      debug('تم فتح صفحة الاستقبال');
+    }
 
     /* ─────────────────────────────────────────
        SEND
@@ -567,7 +624,6 @@
       const file = e.target.files[0];
       if(!file) return;
       
-      // التحقق من نوع الملف
       if(!file.type.startsWith('video/')) {
         alert('الرجاء اختيار ملف فيديو صالح');
         return;
@@ -578,43 +634,49 @@
       fileType  = file.type || 'video/mp4';
       totalSize = file.size;
 
+      debug(`تم اختيار ملف: ${file.name} (${fmtSize(file.size)})`);
+
       document.getElementById('send-s1').style.display = 'none';
       document.getElementById('send-s2').style.display = 'block';
       document.getElementById('s-fname').textContent = file.name;
       document.getElementById('s-fsize').textContent = fmtSize(file.size);
       document.getElementById('peer-code').textContent = 'جارٍ التوصيل…';
 
-      // إنشاء اتصال Peer جديد
       if(peer) {
         try { peer.destroy(); } catch(e) {}
       }
       
-      peer = new Peer(PEER_CONFIG);
+      currentServerIndex = 0;
+      initializeSenderPeer();
+    }
+
+    function initializeSenderPeer() {
+      peer = createPeerWithFallback();
 
       peer.on('open', id => {
-        console.log('📤 Sender Peer ID:', id);
+        debug(`✅ تم فتح اتصال المرسل! الكود: ${id}`);
         document.getElementById('peer-code').textContent = id;
         setSendStatus('waiting', 'في انتظار اتصال الجهاز الثاني… شارك الكود أعلاه');
       });
 
       peer.on('connection', conn => {
-        console.log('📤 Connection established from receiver');
+        debug(`📤 تم إنشاء اتصال من المستقبل`);
         sendConn = conn;
         setSendStatus('ok', '✅ متصل! جارٍ تجهيز الإرسال…');
         document.getElementById('send-prog').style.display = 'block';
         
         conn.on('open', () => {
-          console.log('📤 Data channel opened, starting file transfer');
+          debug(`📤 قناة البيانات مفتوحة، بدء إرسال الملف`);
           sendFile(conn);
         });
         
         conn.on('error', err => {
-          console.error('📤 Connection error:', err);
+          debug(`❌ خطأ في قناة البيانات: ${err.message}`, true);
           setSendStatus('err', 'خطأ في الاتصال: ' + (err.message || 'غير معروف'));
         });
         
         conn.on('close', () => {
-          console.log('📤 Connection closed');
+          debug(`📤 تم إغلاق قناة البيانات`);
           if(document.getElementById('send-done').style.display === 'none') {
             setSendStatus('err', 'انقطع الاتصال قبل اكتمال الإرسال');
           }
@@ -622,29 +684,32 @@
       });
 
       peer.on('error', err => {
-        console.error('📤 Peer error:', err.type, err.message);
+        debug(`❌ خطأ Peer (${err.type}): ${err.message}`, true);
+        
+        // إذا فشل الخادم الحالي، نجرب الخادم التالي
+        if((err.type === 'network' || err.type === 'server-error' || err.type === 'disconnected') 
+           && currentServerIndex < PEER_SERVERS.length - 1) {
+          currentServerIndex++;
+          debug(`🔄 نجرب خادم آخر...`, false);
+          
+          try { peer.destroy(); } catch(e) {}
+          setTimeout(() => initializeSenderPeer(), 1000);
+          return;
+        }
+        
         let errorMsg = '';
         switch(err.type) {
-          case 'peer-unavailable':
-            errorMsg = 'الكود غير صحيح أو منتهي الصلاحية';
-            break;
-          case 'server-error':
-            errorMsg = 'تعذر الاتصال بخادم التوصيل - تأكد من اتصالك بالإنترنت';
-            break;
-          case 'network':
-            errorMsg = 'مشكلة في الشبكة - جرب على WiFi مختلف أو أوقف VPN';
-            break;
-          case 'disconnected':
-            errorMsg = 'انقطع الاتصال بالخادم - جرب مرة أخرى';
-            break;
-          default:
-            errorMsg = err.message || err.type || 'خطأ غير معروف';
+          case 'peer-unavailable': errorMsg = 'الكود غير صحيح أو منتهي الصلاحية'; break;
+          case 'server-error': errorMsg = 'تعذر الاتصال بخادم التوصيل - تأكد من اتصالك بالإنترنت'; break;
+          case 'network': errorMsg = 'مشكلة في الشبكة - جرب على WiFi مختلف أو أوقف VPN'; break;
+          case 'disconnected': errorMsg = 'انقطع الاتصال بالخادم - جرب مرة أخرى'; break;
+          default: errorMsg = err.message || err.type || 'خطأ غير معروف';
         }
         setSendStatus('err', 'خطأ: ' + errorMsg);
       });
       
       peer.on('disconnected', () => {
-        console.log('📤 Peer disconnected, attempting reconnect...');
+        debug(`⚠️ انقطع الاتصال، جارٍ إعادة المحاولة...`);
         setSendStatus('waiting', 'انقطع الاتصال... جارٍ إعادة المحاولة');
         setTimeout(() => {
           if(peer && !peer.destroyed) {
@@ -655,7 +720,6 @@
     }
 
     async function sendFile(conn) {
-      // إرسال بيانات الملف أولاً
       conn.send(JSON.stringify({ 
         t: 'meta', 
         name: videoFile.name, 
@@ -663,31 +727,30 @@
         ft: videoFile.type || 'video/mp4' 
       }));
       
-      await sleep(200); // انتظار قصير لضمان وصول الميتاداتا
+      await sleep(200);
 
       let offset = 0;
       lastUpd = { t: Date.now(), b: 0 };
       
       setSendStatus('ok', '🚀 جارٍ إرسال الفيديو...');
+      debug(`🚀 بدء إرسال الملف...`);
 
       const sendNextChunk = () => {
         if(offset >= videoFile.size) {
-          // اكتمل الإرسال
           conn.send(JSON.stringify({ t: 'done' }));
           document.getElementById('send-prog').style.display = 'none';
           document.getElementById('send-status').style.display = 'none';
           document.getElementById('send-done').style.display = 'block';
-          console.log('📤 File transfer complete!');
+          debug(`✅ اكتمل إرسال الملف بنجاح!`);
           return;
         }
         
-        // التحقق من حالة الاتصال
         if(!conn || !conn.dataChannel || conn.dataChannel.readyState !== 'open') {
+          debug(`❌ قناة البيانات مغلقة أثناء الإرسال`, true);
           setSendStatus('err', 'انقطع الاتصال أثناء الإرسال');
           return;
         }
         
-        // تجنب إغراق المخزن المؤقت
         if(conn.dataChannel.bufferedAmount > 2 * 1024 * 1024) {
           return setTimeout(sendNextChunk, 80);
         }
@@ -702,13 +765,13 @@
             updSendProg(Math.min(offset, videoFile.size));
             sendNextChunk();
           } catch(e) {
-            console.error('Send error:', e);
+            debug(`❌ خطأ في الإرسال: ${e.message}`, true);
             setSendStatus('err', 'خطأ في الإرسال: ' + e.message);
           }
         };
         
         fr.onerror = e => {
-          console.error('FileReader error:', e);
+          debug(`❌ خطأ في قراءة الملف`, true);
           setSendStatus('err', 'خطأ في قراءة الملف');
         };
         
@@ -752,6 +815,8 @@
         return; 
       }
 
+      debug(`🔍 محاولة الاتصال بالكود: ${code}`);
+
       document.getElementById('recv-s1').style.display = 'none';
       document.getElementById('recv-s2').style.display = 'block';
       document.getElementById('r-loader').style.display = 'block';
@@ -764,10 +829,15 @@
         try { peer.destroy(); } catch(e) {}
       }
 
-      peer = new Peer(PEER_CONFIG);
+      currentServerIndex = 0;
+      initializeReceiverPeer(code);
+    }
+
+    function initializeReceiverPeer(code) {
+      peer = createPeerWithFallback();
 
       peer.on('open', () => {
-        console.log('📥 Receiver Peer ID:', peer.id);
+        debug(`✅ تم فتح اتصال المستقبل! الكود المحلي: ${peer.id}`);
         document.getElementById('r-title').textContent = 'جارٍ الاتصال بالمرسل…';
         document.getElementById('r-sub').textContent = 'الكود: ' + code;
         
@@ -777,7 +847,7 @@
         });
 
         conn.on('open', () => {
-          console.log('📥 Connected to sender!');
+          debug(`✅ تم الاتصال بالمرسل بنجاح!`);
           document.getElementById('r-title').textContent = '✅ متصل! في انتظار الفيديو…';
           document.getElementById('r-sub').textContent = 'لا تغلق هذه الصفحة';
         });
@@ -785,14 +855,14 @@
         conn.on('data', d => handleData(d));
 
         conn.on('error', err => {
-          console.error('📥 Connection error:', err);
+          debug(`❌ خطأ في الاتصال: ${err.message}`, true);
           document.getElementById('r-title').textContent = '❌ حدث خطأ';
           document.getElementById('r-sub').textContent = err.message || 'تعذر الاتصال';
           document.getElementById('r-loader').style.display = 'none';
         });
         
         conn.on('close', () => {
-          console.log('📥 Connection closed');
+          debug(`📥 تم إغلاق الاتصال`);
           if(document.getElementById('r-player').style.display === 'none' && 
              document.getElementById('r-prog').style.display === 'none') {
             document.getElementById('r-title').textContent = 'انقطع الاتصال';
@@ -802,20 +872,25 @@
       });
 
       peer.on('error', err => {
-        console.error('📥 Peer error:', err.type, err.message);
+        debug(`❌ خطأ Peer (${err.type}): ${err.message}`, true);
+        
+        // إذا فشل الخادم الحالي، نجرب الخادم التالي
+        if((err.type === 'network' || err.type === 'server-error' || err.type === 'disconnected') 
+           && currentServerIndex < PEER_SERVERS.length - 1) {
+          currentServerIndex++;
+          debug(`🔄 نجرب خادم آخر...`, false);
+          
+          try { peer.destroy(); } catch(e) {}
+          setTimeout(() => initializeReceiverPeer(code), 1000);
+          return;
+        }
+        
         let errorMsg = '';
         switch(err.type) {
-          case 'peer-unavailable':
-            errorMsg = 'الكود غير صحيح أو منتهي الصلاحية - تأكد من أن المرسل ما زال في صفحة الإرسال';
-            break;
-          case 'server-error':
-            errorMsg = 'تعذر الاتصال بخادم التوصيل - تأكد من اتصالك بالإنترنت';
-            break;
-          case 'network':
-            errorMsg = 'مشكلة في الشبكة - جرب على WiFi مختلف';
-            break;
-          default:
-            errorMsg = err.message || err.type || 'خطأ غير معروف';
+          case 'peer-unavailable': errorMsg = 'الكود غير صحيح أو منتهي الصلاحية - تأكد من أن المرسل ما زال في صفحة الإرسال'; break;
+          case 'server-error': errorMsg = 'تعذر الاتصال بخادم التوصيل - تأكد من اتصالك بالإنترنت'; break;
+          case 'network': errorMsg = 'مشكلة في الشبكة - جرب على WiFi مختلف'; break;
+          default: errorMsg = err.message || err.type || 'خطأ غير معروف';
         }
         document.getElementById('r-title').textContent = '❌ خطأ في الاتصال';
         document.getElementById('r-sub').textContent = errorMsg;
@@ -828,7 +903,7 @@
         try {
           const m = JSON.parse(data);
           if(m.t === 'meta') {
-            console.log('📥 Received metadata:', m);
+            debug(`📥 استلام بيانات الملف: ${m.name} (${fmtSize(m.size)})`);
             chunks = []; 
             receivedSize = 0;
             totalSize = m.size; 
@@ -843,11 +918,11 @@
             document.getElementById('r-title').textContent = '📥 جارٍ استقبال الفيديو…';
             document.getElementById('r-sub').textContent = 'لا تغلق هذه الصفحة';
           } else if(m.t === 'done') {
-            console.log('📥 Transfer complete!');
+            debug(`✅ اكتمل استلام الملف!`);
             assemble();
           }
         } catch(e) {
-          console.error('JSON parse error:', e);
+          debug(`❌ خطأ في تحليل JSON: ${e.message}`, true);
         }
       } else if(data instanceof ArrayBuffer) {
         chunks.push(data);
@@ -875,7 +950,7 @@
     }
 
     function assemble() {
-      console.log('📥 Assembling video...');
+      debug(`🎬 تجميع الفيديو...`);
       videoBlob = new Blob(chunks, { type: fileType });
       const url = URL.createObjectURL(videoBlob);
       
@@ -887,6 +962,8 @@
       const v = document.getElementById('vid');
       v.src = url;
       v.load();
+      
+      debug(`✅ الفيديو جاهز للمشاهدة!`);
     }
 
     function dlVideo() {
@@ -895,6 +972,7 @@
       a.href = URL.createObjectURL(videoBlob);
       a.download = fileName || 'video.mp4';
       a.click();
+      debug(`📥 بدء تحميل الفيديو: ${fileName}`);
     }
 
     /* ─────────────────────────────────────────
@@ -911,6 +989,7 @@
         const b = document.getElementById('copy-btn');
         b.innerHTML = '✅ تم النسخ!';
         setTimeout(() => b.innerHTML = '📋 نسخ الكود', 2000);
+        debug(`📋 تم نسخ الكود: ${code}`);
       }).catch(() => {
         prompt('انسخ الكود يدوياً:', code);
       });
@@ -958,7 +1037,6 @@
       });
     }
 
-    // منع الخروج غير المقصود أثناء النقل
     window.addEventListener('beforeunload', e => {
       if((sendConn && sendConn.dataChannel && sendConn.dataChannel.readyState === 'open') ||
          (receivedSize > 0 && receivedSize < totalSize)) {
@@ -968,7 +1046,16 @@
       }
     });
 
-    console.log('🎬 VideoVault - جاهز للعمل');
+    // اختبار الاتصال بالإنترنت
+    debug('🟢 VideoVault جاهز للعمل');
+    debug(`📍 المتصفح: ${navigator.userAgent}`);
+    
+    // اختبار اتصال WebRTC
+    if(window.RTCPeerConnection) {
+      debug('✅ WebRTC مدعوم');
+    } else {
+      debug('❌ WebRTC غير مدعوم في هذا المتصفح', true);
+    }
   </script>
 </body>
 </html>
