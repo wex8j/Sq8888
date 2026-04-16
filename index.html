@@ -491,6 +491,24 @@
     let lastUpd = { t:0, b:0 };
     const CHUNK = 65536; // 64 KB
 
+    // PeerJS Server Config - خادم عام مجاني
+    const PEER_CONFIG = {
+      config: { 
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:stun3.l.google.com:19302' },
+          { urls: 'stun:stun4.l.google.com:19302' }
+        ] 
+      },
+      host: '0.peerjs.com',
+      port: 443,
+      secure: true,
+      path: '/',
+      debug: 2 // لتفعيل السجلات للمساعدة في اكتشاف الأخطاء
+    };
+
     /* ─────────────────────────────────────────
        Navigation
     ───────────────────────────────────────── */
@@ -498,21 +516,47 @@
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
     }
+    
     function goHome() {
-      if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
-      chunks=[]; totalSize=0; receivedSize=0;
+      if(peer){ 
+        try{ 
+          peer.destroy(); 
+        }catch(e){
+          console.log('Peer destroy error:', e);
+        }
+        peer = null; 
+      }
+      if(sendConn) {
+        try { sendConn.close(); } catch(e) {}
+        sendConn = null;
+      }
+      chunks = []; 
+      totalSize = 0; 
+      receivedSize = 0;
+      videoBlob = null;
+      videoFile = null;
+      
       // reset send
-      document.getElementById('send-s1').style.display='block';
-      document.getElementById('send-s2').style.display='none';
-      document.getElementById('send-prog').style.display='none';
-      document.getElementById('send-done').style.display='none';
-      document.getElementById('send-status').style.display='flex';
+      document.getElementById('send-s1').style.display = 'block';
+      document.getElementById('send-s2').style.display = 'none';
+      document.getElementById('send-prog').style.display = 'none';
+      document.getElementById('send-done').style.display = 'none';
+      document.getElementById('send-status').style.display = 'flex';
+      document.getElementById('send-status').className = 'status waiting';
+      document.getElementById('send-status-txt').textContent = 'في انتظار اتصال الجهاز الثاني…';
+      document.getElementById('peer-code').textContent = 'جارٍ التحضير…';
+      
       // reset receive
-      document.getElementById('recv-s1').style.display='block';
-      document.getElementById('recv-s2').style.display='none';
-      document.getElementById('code-input').value='';
+      document.getElementById('recv-s1').style.display = 'block';
+      document.getElementById('recv-s2').style.display = 'none';
+      document.getElementById('r-loader').style.display = 'block';
+      document.getElementById('r-prog').style.display = 'none';
+      document.getElementById('r-player').style.display = 'none';
+      document.getElementById('code-input').value = '';
+      
       show('screen-landing');
     }
+    
     function startSend()    { show('screen-send'); }
     function startReceive() { show('screen-receive'); }
 
@@ -522,88 +566,180 @@
     function onFileSelected(e) {
       const file = e.target.files[0];
       if(!file) return;
+      
+      // التحقق من نوع الملف
+      if(!file.type.startsWith('video/')) {
+        alert('الرجاء اختيار ملف فيديو صالح');
+        return;
+      }
+      
       videoFile = file;
       fileName  = file.name;
       fileType  = file.type || 'video/mp4';
       totalSize = file.size;
 
-      document.getElementById('send-s1').style.display='none';
-      document.getElementById('send-s2').style.display='block';
+      document.getElementById('send-s1').style.display = 'none';
+      document.getElementById('send-s2').style.display = 'block';
       document.getElementById('s-fname').textContent = file.name;
       document.getElementById('s-fsize').textContent = fmtSize(file.size);
-      document.getElementById('peer-code').textContent = '…';
+      document.getElementById('peer-code').textContent = 'جارٍ التوصيل…';
 
-      peer = new Peer({
-        config:{ iceServers:[
-          {urls:'stun:stun.l.google.com:19302'},
-          {urls:'stun:stun1.l.google.com:19302'}
-        ]}
-      });
+      // إنشاء اتصال Peer جديد
+      if(peer) {
+        try { peer.destroy(); } catch(e) {}
+      }
+      
+      peer = new Peer(PEER_CONFIG);
 
       peer.on('open', id => {
+        console.log('📤 Sender Peer ID:', id);
         document.getElementById('peer-code').textContent = id;
+        setSendStatus('waiting', 'في انتظار اتصال الجهاز الثاني… شارك الكود أعلاه');
       });
 
       peer.on('connection', conn => {
+        console.log('📤 Connection established from receiver');
         sendConn = conn;
-        setSendStatus('ok', '✅ متصل! جارٍ الإرسال…');
-        document.getElementById('send-prog').style.display='block';
-        conn.on('open', () => sendFile(conn));
-        conn.on('error', err => setSendStatus('err', 'خطأ: ' + err.message));
+        setSendStatus('ok', '✅ متصل! جارٍ تجهيز الإرسال…');
+        document.getElementById('send-prog').style.display = 'block';
+        
+        conn.on('open', () => {
+          console.log('📤 Data channel opened, starting file transfer');
+          sendFile(conn);
+        });
+        
+        conn.on('error', err => {
+          console.error('📤 Connection error:', err);
+          setSendStatus('err', 'خطأ في الاتصال: ' + (err.message || 'غير معروف'));
+        });
+        
+        conn.on('close', () => {
+          console.log('📤 Connection closed');
+          if(document.getElementById('send-done').style.display === 'none') {
+            setSendStatus('err', 'انقطع الاتصال قبل اكتمال الإرسال');
+          }
+        });
       });
 
-      peer.on('error', err => setSendStatus('err', 'خطأ في الاتصال: ' + err.type));
+      peer.on('error', err => {
+        console.error('📤 Peer error:', err.type, err.message);
+        let errorMsg = '';
+        switch(err.type) {
+          case 'peer-unavailable':
+            errorMsg = 'الكود غير صحيح أو منتهي الصلاحية';
+            break;
+          case 'server-error':
+            errorMsg = 'تعذر الاتصال بخادم التوصيل - تأكد من اتصالك بالإنترنت';
+            break;
+          case 'network':
+            errorMsg = 'مشكلة في الشبكة - جرب على WiFi مختلف أو أوقف VPN';
+            break;
+          case 'disconnected':
+            errorMsg = 'انقطع الاتصال بالخادم - جرب مرة أخرى';
+            break;
+          default:
+            errorMsg = err.message || err.type || 'خطأ غير معروف';
+        }
+        setSendStatus('err', 'خطأ: ' + errorMsg);
+      });
+      
+      peer.on('disconnected', () => {
+        console.log('📤 Peer disconnected, attempting reconnect...');
+        setSendStatus('waiting', 'انقطع الاتصال... جارٍ إعادة المحاولة');
+        setTimeout(() => {
+          if(peer && !peer.destroyed) {
+            peer.reconnect();
+          }
+        }, 3000);
+      });
     }
 
     async function sendFile(conn) {
-      conn.send(JSON.stringify({ t:'meta', name:videoFile.name, size:videoFile.size, ft:videoFile.type||'video/mp4' }));
-      await sleep(150);
+      // إرسال بيانات الملف أولاً
+      conn.send(JSON.stringify({ 
+        t: 'meta', 
+        name: videoFile.name, 
+        size: videoFile.size, 
+        ft: videoFile.type || 'video/mp4' 
+      }));
+      
+      await sleep(200); // انتظار قصير لضمان وصول الميتاداتا
 
-      let offset=0;
-      lastUpd = { t:Date.now(), b:0 };
+      let offset = 0;
+      lastUpd = { t: Date.now(), b: 0 };
+      
+      setSendStatus('ok', '🚀 جارٍ إرسال الفيديو...');
 
-      const next = () => {
-        if(offset >= videoFile.size){
-          conn.send(JSON.stringify({t:'done'}));
-          document.getElementById('send-prog').style.display='none';
-          document.getElementById('send-status').style.display='none';
-          document.getElementById('send-done').style.display='block';
+      const sendNextChunk = () => {
+        if(offset >= videoFile.size) {
+          // اكتمل الإرسال
+          conn.send(JSON.stringify({ t: 'done' }));
+          document.getElementById('send-prog').style.display = 'none';
+          document.getElementById('send-status').style.display = 'none';
+          document.getElementById('send-done').style.display = 'block';
+          console.log('📤 File transfer complete!');
           return;
         }
-        if(conn.dataChannel && conn.dataChannel.bufferedAmount > 2*1024*1024){
-          return setTimeout(next, 80);
+        
+        // التحقق من حالة الاتصال
+        if(!conn || !conn.dataChannel || conn.dataChannel.readyState !== 'open') {
+          setSendStatus('err', 'انقطع الاتصال أثناء الإرسال');
+          return;
         }
-        const slice = videoFile.slice(offset, offset+CHUNK);
+        
+        // تجنب إغراق المخزن المؤقت
+        if(conn.dataChannel.bufferedAmount > 2 * 1024 * 1024) {
+          return setTimeout(sendNextChunk, 80);
+        }
+        
+        const slice = videoFile.slice(offset, offset + CHUNK);
         const fr = new FileReader();
+        
         fr.onload = ev => {
-          conn.send(ev.target.result);
-          offset += CHUNK;
-          updSendProg(Math.min(offset, videoFile.size));
-          next();
+          try {
+            conn.send(ev.target.result);
+            offset += CHUNK;
+            updSendProg(Math.min(offset, videoFile.size));
+            sendNextChunk();
+          } catch(e) {
+            console.error('Send error:', e);
+            setSendStatus('err', 'خطأ في الإرسال: ' + e.message);
+          }
         };
+        
+        fr.onerror = e => {
+          console.error('FileReader error:', e);
+          setSendStatus('err', 'خطأ في قراءة الملف');
+        };
+        
         fr.readAsArrayBuffer(slice);
       };
-      next();
+      
+      sendNextChunk();
     }
 
     function updSendProg(sent) {
-      const pct = (sent/totalSize*100).toFixed(1);
-      document.getElementById('s-bar').style.width = pct+'%';
-      document.getElementById('s-pct').textContent  = Math.round(pct)+'%';
+      const pct = (sent / totalSize * 100).toFixed(1);
+      document.getElementById('s-bar').style.width = pct + '%';
+      document.getElementById('s-pct').textContent = Math.round(pct) + '%';
       document.getElementById('s-sent').textContent = fmtSize(sent);
-      const now=Date.now(), elapsed=(now-lastUpd.t)/1000;
-      if(elapsed>1){
-        const spd=(sent-lastUpd.b)/elapsed;
-        document.getElementById('s-spd').textContent = fmtSize(spd)+'/ث';
-        document.getElementById('s-eta').textContent = fmtTime((totalSize-sent)/Math.max(spd,1));
-        lastUpd={t:now,b:sent};
+      
+      const now = Date.now();
+      const elapsed = (now - lastUpd.t) / 1000;
+      
+      if(elapsed > 1) {
+        const spd = (sent - lastUpd.b) / elapsed;
+        document.getElementById('s-spd').textContent = fmtSize(spd) + '/ث';
+        const remaining = totalSize - sent;
+        document.getElementById('s-eta').textContent = fmtTime(remaining / Math.max(spd, 1));
+        lastUpd = { t: now, b: sent };
       }
     }
 
     function setSendStatus(type, txt) {
-      const el=document.getElementById('send-status');
-      el.className='status '+type;
-      el.innerHTML=`<span class="pulse"></span><span>${txt}</span>`;
+      const el = document.getElementById('send-status');
+      el.className = 'status ' + type;
+      document.getElementById('send-status-txt').textContent = txt;
     }
 
     /* ─────────────────────────────────────────
@@ -611,59 +747,109 @@
     ───────────────────────────────────────── */
     function connectToPeer() {
       const code = document.getElementById('code-input').value.trim();
-      if(!code){ alert('أدخل الكود أولاً'); return; }
+      if(!code) { 
+        alert('الرجاء إدخال الكود أولاً'); 
+        return; 
+      }
 
-      document.getElementById('recv-s1').style.display='none';
-      document.getElementById('recv-s2').style.display='block';
+      document.getElementById('recv-s1').style.display = 'none';
+      document.getElementById('recv-s2').style.display = 'block';
+      document.getElementById('r-loader').style.display = 'block';
+      document.getElementById('r-prog').style.display = 'none';
+      document.getElementById('r-player').style.display = 'none';
+      document.getElementById('r-title').textContent = 'جارٍ الاتصال…';
+      document.getElementById('r-sub').textContent = 'يرجى الانتظار';
 
-      peer = new Peer({
-        config:{ iceServers:[
-          {urls:'stun:stun.l.google.com:19302'},
-          {urls:'stun:stun1.l.google.com:19302'}
-        ]}
-      });
+      if(peer) {
+        try { peer.destroy(); } catch(e) {}
+      }
+
+      peer = new Peer(PEER_CONFIG);
 
       peer.on('open', () => {
-        const conn = peer.connect(code, { reliable:true });
+        console.log('📥 Receiver Peer ID:', peer.id);
+        document.getElementById('r-title').textContent = 'جارٍ الاتصال بالمرسل…';
+        document.getElementById('r-sub').textContent = 'الكود: ' + code;
+        
+        const conn = peer.connect(code, { 
+          reliable: true,
+          serialization: 'binary'
+        });
 
         conn.on('open', () => {
-          document.getElementById('r-title').textContent='متصل! في انتظار الفيديو…';
-          document.getElementById('r-sub').textContent='لا تغلق هذه الصفحة';
+          console.log('📥 Connected to sender!');
+          document.getElementById('r-title').textContent = '✅ متصل! في انتظار الفيديو…';
+          document.getElementById('r-sub').textContent = 'لا تغلق هذه الصفحة';
         });
 
         conn.on('data', d => handleData(d));
 
         conn.on('error', err => {
-          document.getElementById('r-title').textContent='حدث خطأ';
-          document.getElementById('r-sub').textContent=err.message;
+          console.error('📥 Connection error:', err);
+          document.getElementById('r-title').textContent = '❌ حدث خطأ';
+          document.getElementById('r-sub').textContent = err.message || 'تعذر الاتصال';
+          document.getElementById('r-loader').style.display = 'none';
+        });
+        
+        conn.on('close', () => {
+          console.log('📥 Connection closed');
+          if(document.getElementById('r-player').style.display === 'none' && 
+             document.getElementById('r-prog').style.display === 'none') {
+            document.getElementById('r-title').textContent = 'انقطع الاتصال';
+            document.getElementById('r-sub').textContent = 'حاول مرة أخرى';
+          }
         });
       });
 
       peer.on('error', err => {
-        document.getElementById('r-title').textContent='خطأ في الاتصال';
-        document.getElementById('r-sub').textContent='تأكد من الكود وأن الجهاز الأول متصل بالإنترنت';
+        console.error('📥 Peer error:', err.type, err.message);
+        let errorMsg = '';
+        switch(err.type) {
+          case 'peer-unavailable':
+            errorMsg = 'الكود غير صحيح أو منتهي الصلاحية - تأكد من أن المرسل ما زال في صفحة الإرسال';
+            break;
+          case 'server-error':
+            errorMsg = 'تعذر الاتصال بخادم التوصيل - تأكد من اتصالك بالإنترنت';
+            break;
+          case 'network':
+            errorMsg = 'مشكلة في الشبكة - جرب على WiFi مختلف';
+            break;
+          default:
+            errorMsg = err.message || err.type || 'خطأ غير معروف';
+        }
+        document.getElementById('r-title').textContent = '❌ خطأ في الاتصال';
+        document.getElementById('r-sub').textContent = errorMsg;
+        document.getElementById('r-loader').style.display = 'none';
       });
     }
 
     function handleData(data) {
-      if(typeof data === 'string'){
-        try{
+      if(typeof data === 'string') {
+        try {
           const m = JSON.parse(data);
-          if(m.t==='meta'){
-            chunks=[]; receivedSize=0;
-            totalSize=m.size; fileType=m.ft; fileName=m.name;
-            lastUpd={t:Date.now(),b:0};
-            document.getElementById('r-loader').style.display='none';
-            document.getElementById('r-prog').style.display='block';
-            document.getElementById('r-fname').textContent=m.name;
-            document.getElementById('r-fsize').textContent=fmtSize(m.size);
-            document.getElementById('r-title').textContent='جارٍ استقبال الفيديو…';
-            document.getElementById('r-sub').textContent='لا تغلق هذه الصفحة';
-          } else if(m.t==='done'){
+          if(m.t === 'meta') {
+            console.log('📥 Received metadata:', m);
+            chunks = []; 
+            receivedSize = 0;
+            totalSize = m.size; 
+            fileType = m.ft; 
+            fileName = m.name;
+            lastUpd = { t: Date.now(), b: 0 };
+            
+            document.getElementById('r-loader').style.display = 'none';
+            document.getElementById('r-prog').style.display = 'block';
+            document.getElementById('r-fname').textContent = m.name;
+            document.getElementById('r-fsize').textContent = fmtSize(m.size);
+            document.getElementById('r-title').textContent = '📥 جارٍ استقبال الفيديو…';
+            document.getElementById('r-sub').textContent = 'لا تغلق هذه الصفحة';
+          } else if(m.t === 'done') {
+            console.log('📥 Transfer complete!');
             assemble();
           }
-        }catch(e){}
-      } else if(data instanceof ArrayBuffer){
+        } catch(e) {
+          console.error('JSON parse error:', e);
+        }
+      } else if(data instanceof ArrayBuffer) {
         chunks.push(data);
         receivedSize += data.byteLength;
         updRecvProg(receivedSize);
@@ -671,36 +857,43 @@
     }
 
     function updRecvProg(rcv) {
-      const pct=(rcv/totalSize*100).toFixed(1);
-      document.getElementById('r-bar').style.width=pct+'%';
-      document.getElementById('r-pct').textContent=Math.round(pct)+'%';
-      document.getElementById('r-rcv').textContent=fmtSize(rcv);
-      const now=Date.now(), elapsed=(now-lastUpd.t)/1000;
-      if(elapsed>1){
-        const spd=(rcv-lastUpd.b)/elapsed;
-        document.getElementById('r-spd').textContent=fmtSize(spd)+'/ث';
-        document.getElementById('r-eta').textContent=fmtTime((totalSize-rcv)/Math.max(spd,1));
-        lastUpd={t:now,b:rcv};
+      const pct = (rcv / totalSize * 100).toFixed(1);
+      document.getElementById('r-bar').style.width = pct + '%';
+      document.getElementById('r-pct').textContent = Math.round(pct) + '%';
+      document.getElementById('r-rcv').textContent = fmtSize(rcv);
+      
+      const now = Date.now();
+      const elapsed = (now - lastUpd.t) / 1000;
+      
+      if(elapsed > 1) {
+        const spd = (rcv - lastUpd.b) / elapsed;
+        document.getElementById('r-spd').textContent = fmtSize(spd) + '/ث';
+        const remaining = totalSize - rcv;
+        document.getElementById('r-eta').textContent = fmtTime(remaining / Math.max(spd, 1));
+        lastUpd = { t: now, b: rcv };
       }
     }
 
     function assemble() {
-      videoBlob = new Blob(chunks, {type:fileType});
-      const url  = URL.createObjectURL(videoBlob);
-      document.getElementById('r-prog').style.display='none';
-      document.getElementById('r-player').style.display='block';
-      document.getElementById('r-title').textContent='تم الاستقبال!';
-      document.getElementById('r-sub').textContent='جودة أصلية — بدون أي ضغط';
+      console.log('📥 Assembling video...');
+      videoBlob = new Blob(chunks, { type: fileType });
+      const url = URL.createObjectURL(videoBlob);
+      
+      document.getElementById('r-prog').style.display = 'none';
+      document.getElementById('r-player').style.display = 'block';
+      document.getElementById('r-title').textContent = '🎉 تم الاستقبال بنجاح!';
+      document.getElementById('r-sub').textContent = 'جودة أصلية — بدون أي ضغط';
+      
       const v = document.getElementById('vid');
       v.src = url;
-      v.play().catch(()=>{});
+      v.load();
     }
 
     function dlVideo() {
       if(!videoBlob) return;
       const a = document.createElement('a');
-      a.href     = URL.createObjectURL(videoBlob);
-      a.download = fileName||'video.mp4';
+      a.href = URL.createObjectURL(videoBlob);
+      a.download = fileName || 'video.mp4';
       a.click();
     }
 
@@ -709,43 +902,73 @@
     ───────────────────────────────────────── */
     function copyCode() {
       const code = document.getElementById('peer-code').textContent;
-      navigator.clipboard.writeText(code).then(()=>{
-        const b=document.getElementById('copy-btn');
-        b.textContent='✅ تم النسخ!';
-        setTimeout(()=>b.innerHTML='📋 نسخ الكود',2000);
-      }).catch(()=>{
-        prompt('الكود:', code);
+      if(!code || code === 'جارٍ التحضير…' || code === 'جارٍ التوصيل…') {
+        alert('انتظر حتى يظهر الكود');
+        return;
+      }
+      
+      navigator.clipboard.writeText(code).then(() => {
+        const b = document.getElementById('copy-btn');
+        b.innerHTML = '✅ تم النسخ!';
+        setTimeout(() => b.innerHTML = '📋 نسخ الكود', 2000);
+      }).catch(() => {
+        prompt('انسخ الكود يدوياً:', code);
       });
     }
 
     function fmtSize(b) {
-      if(b<1024)       return b+' B';
-      if(b<1048576)    return (b/1024).toFixed(1)+' KB';
-      if(b<1073741824) return (b/1048576).toFixed(1)+' MB';
-      return (b/1073741824).toFixed(2)+' GB';
+      if(b < 1024) return b + ' B';
+      if(b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+      if(b < 1073741824) return (b / 1048576).toFixed(1) + ' MB';
+      return (b / 1073741824).toFixed(2) + ' GB';
     }
 
     function fmtTime(s) {
-      if(s<60)   return Math.round(s)+'ث';
-      if(s<3600) return Math.round(s/60)+'د';
-      return Math.round(s/3600)+'س';
+      if(isNaN(s) || !isFinite(s)) return '--';
+      if(s < 60) return Math.round(s) + ' ث';
+      if(s < 3600) return Math.round(s / 60) + ' د';
+      return Math.round(s / 3600) + ' س';
     }
 
-    function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+    function sleep(ms) { 
+      return new Promise(r => setTimeout(r, ms)); 
+    }
 
     /* ── Drag & drop ── */
     const dz = document.getElementById('dropzone');
-    dz.addEventListener('dragover', e=>{
-      e.preventDefault(); dz.classList.add('drag-over');
-    });
-    dz.addEventListener('dragleave', ()=> dz.classList.remove('drag-over'));
-    dz.addEventListener('drop', e=>{
-      e.preventDefault(); dz.classList.remove('drag-over');
-      const f=e.dataTransfer.files[0];
-      if(f && f.type.startsWith('video/')){
-        onFileSelected({target:{files:[f]}});
+    if(dz) {
+      dz.addEventListener('dragover', e => {
+        e.preventDefault(); 
+        dz.classList.add('drag-over');
+      });
+      
+      dz.addEventListener('dragleave', () => {
+        dz.classList.remove('drag-over');
+      });
+      
+      dz.addEventListener('drop', e => {
+        e.preventDefault(); 
+        dz.classList.remove('drag-over');
+        const f = e.dataTransfer.files[0];
+        if(f && f.type.startsWith('video/')) {
+          onFileSelected({ target: { files: [f] } });
+        } else {
+          alert('الرجاء اختيار ملف فيديو');
+        }
+      });
+    }
+
+    // منع الخروج غير المقصود أثناء النقل
+    window.addEventListener('beforeunload', e => {
+      if((sendConn && sendConn.dataChannel && sendConn.dataChannel.readyState === 'open') ||
+         (receivedSize > 0 && receivedSize < totalSize)) {
+        e.preventDefault();
+        e.returnValue = 'النقل ما زال جارياً. هل أنت متأكد من المغادرة؟';
+        return e.returnValue;
       }
     });
+
+    console.log('🎬 VideoVault - جاهز للعمل');
   </script>
 </body>
 </html>
