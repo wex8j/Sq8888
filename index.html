@@ -2,11 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>VideoVault — مشاركة فيديو</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    /* نفس الستايل السابق - احتفظ به كما هو */
     :root {
       --bg: #04060f;
       --glass: rgba(255,255,255,0.04);
@@ -19,31 +20,456 @@
       --success: #39d353;
       --red: #ff4d4d;
     }
-    /* ... أكمل باقي الستايل من الكود السابق ... */
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width:100%; min-height:100%;
+      font-family:'Tajawal', sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    .bg-mesh {
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 10%, rgba(0,212,255,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 70% at 85% 90%, rgba(139,92,246,0.07) 0%, transparent 55%);
+      animation:meshPulse 10s ease-in-out infinite alternate;
+    }
+    @keyframes meshPulse {
+      0%  { opacity:.7; transform:scale(1); }
+      100%{ opacity:1;  transform:scale(1.06) translateY(-1%); }
+    }
+    .bg-grid {
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.025) 1px, transparent 1px);
+      background-size:55px 55px;
+      mask-image:radial-gradient(ellipse at center, transparent 20%, black 100%);
+      -webkit-mask-image:radial-gradient(ellipse at center, transparent 20%, black 100%);
+    }
+
+    .screen {
+      position:relative; z-index:1;
+      min-height:100vh;
+      display:none; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding:28px 20px;
+      animation:fadeUp .4s ease;
+    }
+    .screen.active { display:flex; }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .logo { display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:10px; }
+    .logo-icon {
+      width:48px; height:48px;
+      background:linear-gradient(135deg, var(--accent), var(--purple));
+      border-radius:14px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px;
+      box-shadow:0 0 28px var(--glow);
+    }
+    .logo-text {
+      font-size:28px; font-weight:900; letter-spacing:-.5px;
+      background:linear-gradient(135deg, var(--accent), var(--purple));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .tagline { color:var(--muted); font-size:15px; text-align:center; margin-bottom:44px; font-weight:300; }
+
+    .cards-grid {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:14px; width:100%; max-width:480px;
+    }
+    @media(max-width:380px){ .cards-grid{grid-template-columns:1fr;} }
+
+    .card {
+      background:var(--glass);
+      border:1px solid var(--glass-b);
+      border-radius:20px; padding:28px 18px;
+      cursor:pointer; transition:all .3s ease;
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      text-align:center; user-select:none;
+    }
+    .card:hover, .card:active {
+      transform:translateY(-5px);
+      border-color:var(--accent);
+      box-shadow:0 8px 36px var(--glow);
+    }
+    .card-icon { font-size:44px; display:block; margin-bottom:14px; }
+    .card h2  { font-size:20px; font-weight:700; margin-bottom:6px; }
+    .card p   { color:var(--muted); font-size:13px; }
+
+    .panel {
+      background:var(--glass);
+      border:1px solid var(--glass-b);
+      border-radius:24px; padding:30px 26px;
+      width:100%; max-width:480px;
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    }
+    .panel-title { font-size:22px; font-weight:700; margin-bottom:5px; }
+    .panel-sub   { color:var(--muted); font-size:14px; margin-bottom:26px; }
+
+    .back-btn {
+      display:flex; align-items:center; gap:6px;
+      background:transparent; border:none; color:var(--muted);
+      cursor:pointer; font-family:'Tajawal',sans-serif;
+      font-size:14px; padding:0; margin-bottom:20px; transition:color .2s;
+    }
+    .back-btn:hover { color:var(--text); }
+
+    .dropzone {
+      border:2px dashed rgba(0,212,255,.3);
+      border-radius:16px; padding:36px 20px;
+      text-align:center; cursor:pointer;
+      transition:all .3s;
+      background:rgba(0,212,255,.03);
+      position:relative;
+    }
+    .dropzone.drag-over {
+      border-color:var(--accent);
+      background:rgba(0,212,255,.08);
+      box-shadow:0 0 36px var(--glow);
+    }
+    .dropzone input[type="file"] {
+      position:absolute; inset:0; opacity:0;
+      cursor:pointer; width:100%; height:100%;
+    }
+    .dz-icon { font-size:42px; margin-bottom:12px; }
+    .dz-text { font-size:16px; font-weight:600; margin-bottom:6px; }
+    .dz-hint { font-size:12px; color:var(--muted); }
+
+    .code-box {
+      background:rgba(0,212,255,.07);
+      border:1px solid rgba(0,212,255,.25);
+      border-radius:16px; padding:22px;
+      text-align:center; margin:18px 0;
+    }
+    .code-label {
+      font-size:11px; color:var(--muted);
+      letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px;
+    }
+    .code-value {
+      font-size:36px; font-weight:900;
+      letter-spacing:6px; color:var(--accent);
+      text-shadow:0 0 24px var(--glow);
+      direction:ltr; display:block; word-break:break-all;
+    }
+    .copy-btn {
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      width:100%; background:transparent;
+      border:1px solid var(--glass-b); color:var(--muted);
+      padding:10px; border-radius:10px; cursor:pointer;
+      font-family:'Tajawal',sans-serif; font-size:14px;
+      margin-top:10px; transition:all .2s;
+    }
+    .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+    .code-input {
+      width:100%;
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--glass-b); border-radius:14px;
+      padding:18px 20px; font-size:26px; font-weight:700;
+      letter-spacing:4px; color:var(--text);
+      text-align:center; font-family:'Tajawal',sans-serif;
+      direction:ltr; outline:none; transition:all .3s;
+      margin-bottom:14px;
+    }
+    .code-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--glow); }
+
+    .btn {
+      width:100%; padding:15px; border:none; border-radius:14px;
+      font-size:16px; font-weight:700; cursor:pointer;
+      font-family:'Tajawal',sans-serif; transition:all .3s;
+    }
+    .btn-primary {
+      background:linear-gradient(135deg, var(--accent), var(--purple));
+      color:#fff;
+    }
+    .btn-primary:hover  { transform:translateY(-2px); box-shadow:0 8px 28px var(--glow); }
+    .btn-primary:active { transform:translateY(0); }
+    .btn-primary:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+    .btn-ghost {
+      background:transparent; color:var(--muted);
+      border:1px solid var(--glass-b); margin-top:10px;
+    }
+    .btn-ghost:hover { color:var(--text); border-color:var(--muted); }
+
+    .file-info {
+      display:flex; align-items:center; gap:12px;
+      padding:13px 15px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--glass-b);
+      border-radius:12px; margin:14px 0;
+    }
+    .fi-icon { font-size:24px; }
+    .fi-details { flex:1; overflow:hidden; }
+    .fi-name { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .fi-size { font-size:12px; color:var(--muted); }
+
+    .prog-wrap { margin:16px 0; }
+    .prog-info { display:flex; justify-content:space-between; font-size:13px; color:var(--muted); margin-bottom:8px; }
+    .prog-bar  { height:7px; background:rgba(255,255,255,.06); border-radius:4px; overflow:hidden; }
+    .prog-fill {
+      height:100%; width:0%;
+      background:linear-gradient(90deg, var(--accent), var(--purple));
+      border-radius:4px; transition:width .3s ease;
+      box-shadow:0 0 12px var(--glow);
+    }
+
+    .stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:14px 0; }
+    .stat-box {
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--glass-b);
+      border-radius:10px; padding:11px 6px; text-align:center;
+    }
+    .stat-val   { font-size:15px; font-weight:700; color:var(--accent); }
+    .stat-label { font-size:11px; color:var(--muted); margin-top:2px; }
+
+    .status {
+      display:flex; align-items:center; gap:10px;
+      padding:12px 15px; border-radius:10px;
+      font-size:14px; margin-bottom:14px;
+    }
+    .status.waiting  { background:rgba(0,212,255,.07);  border:1px solid rgba(0,212,255,.2);  color:var(--accent); }
+    .status.ok       { background:rgba(57,211,83,.07);  border:1px solid rgba(57,211,83,.2);  color:var(--success); }
+    .status.err      { background:rgba(255,77,77,.07);  border:1px solid rgba(255,77,77,.2);  color:var(--red); }
+
+    .pulse {
+      width:8px; height:8px; border-radius:50%;
+      background:currentColor; flex-shrink:0;
+      animation:pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100%{ opacity:1; transform:scale(1);   }
+      50%    { opacity:.3; transform:scale(.7); }
+    }
+
+    .dots { display:flex; justify-content:center; gap:7px; margin:24px 0; }
+    .dots span {
+      width:9px; height:9px; border-radius:50%;
+      background:var(--accent);
+      animation:dotBounce 1.2s ease-in-out infinite;
+    }
+    .dots span:nth-child(2){ animation-delay:.2s; }
+    .dots span:nth-child(3){ animation-delay:.4s; }
+    @keyframes dotBounce {
+      0%,100%{ transform:translateY(0);    opacity:.4; }
+      50%    { transform:translateY(-11px); opacity:1;  }
+    }
+
+    .video-wrap {
+      width:100%; border-radius:14px; overflow:hidden;
+      background:#000; margin-top:14px;
+    }
+    video { width:100%; display:block; max-height:62vh; }
+
+    .divider {
+      display:flex; align-items:center; gap:12px;
+      margin:18px 0; color:var(--muted); font-size:12px;
+    }
+    .divider::before, .divider::after {
+      content:''; flex:1; height:1px; background:var(--glass-b);
+    }
+
+    .success-icon {
+      font-size:50px; text-align:center;
+      display:block; margin:16px 0;
+      animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes popIn {
+      from{ transform:scale(0); opacity:0; }
+      to  { transform:scale(1); opacity:1; }
+    }
+
+    .note {
+      color:var(--muted); font-size:12px;
+      text-align:center; margin-top:28px;
+      max-width:320px; line-height:1.85;
+    }
+    .note span { color:var(--accent); }
   </style>
 </head>
 <body>
-  <!-- نفس الهيكل السابق -->
-  
+  <div class="bg-mesh"></div>
+  <div class="bg-grid"></div>
+
+  <!-- ════════════════════ LANDING ════════════════════ -->
+  <div id="screen-landing" class="screen active">
+    <div class="logo">
+      <div class="logo-icon">▶</div>
+      <span class="logo-text">VideoVault</span>
+    </div>
+    <p class="tagline">شارك فيديوهاتك بجودة HD كاملة بدون سيرفر</p>
+
+    <div class="cards-grid">
+      <div class="card" onclick="startSend()">
+        <span class="card-icon">📤</span>
+        <h2>أرسل فيديو</h2>
+        <p>ارفع من آيفون أو أي جهاز</p>
+      </div>
+      <div class="card" onclick="startReceive()">
+        <span class="card-icon">🎬</span>
+        <h2>استقبل فيديو</h2>
+        <p>شاهد بجودة عالية وكاملة</p>
+      </div>
+    </div>
+
+    <p class="note">
+      النقل مباشر بين الجهازين <span>(P2P)</span> •<br>
+      الفيديو لا يُرفع لأي سيرفر •<br>
+      جودة أصلية بدون ضغط أو تشويه
+    </p>
+  </div>
+
+  <!-- ════════════════════ SEND ════════════════════ -->
+  <div id="screen-send" class="screen">
+    <div class="panel">
+      <button class="back-btn" onclick="goHome()">&#8592; رجوع</button>
+
+      <div id="send-s1">
+        <div class="panel-title">📤 أرسل فيديو</div>
+        <div class="panel-sub">اختر الفيديو من جهازك</div>
+
+        <div class="dropzone" id="dropzone">
+          <input type="file" accept="video/*" id="video-input" onchange="onFileSelected(event)">
+          <div class="dz-icon">🎥</div>
+          <div class="dz-text">اضغط لاختيار فيديو</div>
+          <div class="dz-hint">أو اسحب وأفلت • كل صيغ الفيديو مدعومة</div>
+        </div>
+      </div>
+
+      <div id="send-s2" style="display:none">
+        <div class="panel-title">انتظر الاتصال</div>
+        <div class="panel-sub">شارك الكود مع الجهاز الثاني</div>
+
+        <div class="file-info">
+          <span class="fi-icon">🎬</span>
+          <div class="fi-details">
+            <div class="fi-name" id="s-fname">—</div>
+            <div class="fi-size"  id="s-fsize">—</div>
+          </div>
+        </div>
+
+        <div class="code-box">
+          <div class="code-label">كود الاتصال</div>
+          <div class="code-value" id="peer-code">جارٍ التحضير…</div>
+          <button class="copy-btn" onclick="copyCode()" id="copy-btn">📋 نسخ الكود</button>
+        </div>
+
+        <div class="status waiting" id="send-status">
+          <span class="pulse"></span>
+          <span id="send-status-txt">في انتظار اتصال الجهاز الثاني…</span>
+        </div>
+
+        <div id="send-prog" style="display:none">
+          <div class="prog-wrap">
+            <div class="prog-info">
+              <span>جارٍ الإرسال</span>
+              <span id="s-pct">0%</span>
+            </div>
+            <div class="prog-bar"><div class="prog-fill" id="s-bar"></div></div>
+          </div>
+          <div class="stats">
+            <div class="stat-box"><div class="stat-val" id="s-sent">0</div><div class="stat-label">مُرسَل</div></div>
+            <div class="stat-box"><div class="stat-val" id="s-spd">—</div><div class="stat-label">السرعة</div></div>
+            <div class="stat-box"><div class="stat-val" id="s-eta">—</div><div class="stat-label">الوقت المتبقي</div></div>
+          </div>
+        </div>
+
+        <div id="send-done" style="display:none;text-align:center">
+          <span class="success-icon">✅</span>
+          <p style="font-weight:700;margin-bottom:6px">اكتمل الإرسال!</p>
+          <p style="color:var(--muted);font-size:14px">الفيديو وصل للجهاز الثاني بجودة كاملة</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════ RECEIVE ════════════════════ -->
+  <div id="screen-receive" class="screen">
+    <div class="panel">
+      <button class="back-btn" onclick="goHome()">&#8592; رجوع</button>
+
+      <div id="recv-s1">
+        <div class="panel-title">🎬 استقبل فيديو</div>
+        <div class="panel-sub">أدخل الكود من الجهاز الأول</div>
+
+        <input type="text" class="code-input" id="code-input"
+               placeholder="أدخل الكود هنا" maxlength="40"
+               onkeydown="if(event.key==='Enter') connectToPeer()">
+
+        <button class="btn btn-primary" onclick="connectToPeer()">اتصل الآن</button>
+
+        <div class="divider">كيف يعمل؟</div>
+        <div class="status waiting" style="font-size:13px;line-height:1.7">
+          💡 افتح نفس هذا الملف على الجهاز الأول ← اختر "أرسل فيديو" ← انسخ الكود وألصقه هنا
+        </div>
+      </div>
+
+      <div id="recv-s2" style="display:none">
+        <div class="panel-title" id="r-title">جارٍ الاتصال…</div>
+        <div class="panel-sub"  id="r-sub">يرجى الانتظار</div>
+
+        <div id="r-loader"><div class="dots"><span></span><span></span><span></span></div></div>
+
+        <div id="r-prog" style="display:none">
+          <div class="file-info">
+            <span class="fi-icon">🎬</span>
+            <div class="fi-details">
+              <div class="fi-name" id="r-fname">—</div>
+              <div class="fi-size"  id="r-fsize">—</div>
+            </div>
+          </div>
+          <div class="prog-wrap">
+            <div class="prog-info">
+              <span>جارٍ الاستقبال</span>
+              <span id="r-pct">0%</span>
+            </div>
+            <div class="prog-bar"><div class="prog-fill" id="r-bar"></div></div>
+          </div>
+          <div class="stats">
+            <div class="stat-box"><div class="stat-val" id="r-rcv">0</div><div class="stat-label">مُستقبَل</div></div>
+            <div class="stat-box"><div class="stat-val" id="r-spd">—</div><div class="stat-label">السرعة</div></div>
+            <div class="stat-box"><div class="stat-val" id="r-eta">—</div><div class="stat-label">الوقت المتبقي</div></div>
+          </div>
+        </div>
+
+        <div id="r-player" style="display:none">
+          <span class="success-icon">🎉</span>
+          <p style="text-align:center;font-weight:700;margin-bottom:14px">وصل الفيديو بجودة كاملة!</p>
+          <div class="video-wrap">
+            <video id="vid" controls playsinline webkit-playsinline></video>
+          </div>
+          <button class="btn btn-ghost" onclick="dlVideo()">⬇️ تحميل الفيديو</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ⚠️ غير هذا الرابط إلى رابط سيرفرك على Render
-    const YOUR_RENDER_SERVER = 'https://your-server-name.onrender.com';
+    // ⚠️ سيرفرك على Railway
+    const YOUR_SERVER = 'sq8888-production.up.railway.app';
     
-    // إعدادات PeerJS لـ Render
+    // إعدادات PeerJS لـ Railway
     const PEER_CONFIG = {
       config: { 
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' },
-          { urls: 'stun:stun3.l.google.com:19302' }
+          { urls: 'stun:stun1.l.google.com:19302' }
         ] 
       },
-      host: YOUR_RENDER_SERVER.replace('https://', '').replace('http://', ''),
+      host: YOUR_SERVER,
       port: 443,
       secure: true,
       path: '/',
-      debug: 3
+      debug: 2
     };
 
     let peer = null, sendConn = null;
@@ -52,38 +478,15 @@
     let fileType = 'video/mp4', fileName = '';
     let lastUpd = { t:0, b:0 };
     const CHUNK = 65536;
-    
-    // دالة لاختبار اتصال السيرفر قبل البدء
-    async function testServerConnection() {
-      try {
-        const response = await fetch(YOUR_RENDER_SERVER + '/peerjs/id');
-        const data = await response.text();
-        console.log('✅ Server is awake:', data);
-        return true;
-      } catch(e) {
-        console.error('❌ Server not responding:', e);
-        alert('السيرفر غير متصل. انتظر 30 ثانية وجرب مرة أخرى.\n\nتلميح: افتح ' + YOUR_RENDER_SERVER + ' في المتصفح أولاً');
-        return false;
-      }
-    }
 
-    /* ─────────────────────────────────────────
-       Navigation
-    ───────────────────────────────────────── */
     function show(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
     }
     
     function goHome() {
-      if(peer){ 
-        try{ peer.destroy(); } catch(e){}
-        peer = null; 
-      }
-      if(sendConn) {
-        try { sendConn.close(); } catch(e) {}
-        sendConn = null;
-      }
+      if(peer){ try{ peer.destroy(); } catch(e){} peer = null; }
+      if(sendConn) { try { sendConn.close(); } catch(e) {} sendConn = null; }
       chunks = []; totalSize = 0; receivedSize = 0;
       videoBlob = null; videoFile = null;
       
@@ -91,34 +494,27 @@
       document.getElementById('send-s2').style.display = 'none';
       document.getElementById('send-prog').style.display = 'none';
       document.getElementById('send-done').style.display = 'none';
+      document.getElementById('send-status').style.display = 'flex';
+      document.getElementById('send-status').className = 'status waiting';
+      document.getElementById('send-status-txt').textContent = 'في انتظار اتصال الجهاز الثاني…';
+      document.getElementById('peer-code').textContent = 'جارٍ التحضير…';
       
       document.getElementById('recv-s1').style.display = 'block';
       document.getElementById('recv-s2').style.display = 'none';
+      document.getElementById('r-loader').style.display = 'block';
+      document.getElementById('r-prog').style.display = 'none';
+      document.getElementById('r-player').style.display = 'none';
+      document.getElementById('code-input').value = '';
       
       show('screen-landing');
     }
     
-    function startSend() { 
-      show('screen-send'); 
-    }
-    
-    function startReceive() { 
-      show('screen-receive'); 
-    }
+    function startSend() { show('screen-send'); }
+    function startReceive() { show('screen-receive'); }
 
-    /* ─────────────────────────────────────────
-       SEND
-    ───────────────────────────────────────── */
-    async function onFileSelected(e) {
+    function onFileSelected(e) {
       const file = e.target.files[0];
       if(!file) return;
-      
-      // اختبار اتصال السيرفر أولاً
-      const serverOk = await testServerConnection();
-      if(!serverOk) {
-        document.getElementById('send-s1').style.display = 'block';
-        return;
-      }
       
       videoFile = file;
       fileName  = file.name;
@@ -129,24 +525,23 @@
       document.getElementById('send-s2').style.display = 'block';
       document.getElementById('s-fname').textContent = file.name;
       document.getElementById('s-fsize').textContent = fmtSize(file.size);
-      document.getElementById('peer-code').textContent = 'جارٍ الاتصال بالسيرفر…';
+      document.getElementById('peer-code').textContent = 'جارٍ التوصيل…';
 
-      if(peer) {
-        try { peer.destroy(); } catch(e) {}
-      }
+      if(peer) { try { peer.destroy(); } catch(e) {} }
       
+      console.log('Connecting to server:', YOUR_SERVER);
       peer = new Peer(PEER_CONFIG);
 
       peer.on('open', id => {
-        console.log('📤 Sender ID:', id);
+        console.log('✅ Sender ID:', id);
         document.getElementById('peer-code').textContent = id;
-        setSendStatus('waiting', 'في انتظار اتصال الجهاز الثاني… شارك الكود أعلاه');
+        setSendStatus('waiting', '✅ الكود جاهز! شاركه مع الجهاز الثاني');
       });
 
       peer.on('connection', conn => {
-        console.log('📤 Connected to receiver');
+        console.log('✅ Receiver connected');
         sendConn = conn;
-        setSendStatus('ok', '✅ متصل! جارٍ تجهيز الإرسال…');
+        setSendStatus('ok', '✅ متصل! جارٍ الإرسال…');
         document.getElementById('send-prog').style.display = 'block';
         
         conn.on('open', () => sendFile(conn));
@@ -159,11 +554,8 @@
 
       peer.on('error', err => {
         console.error('Peer error:', err);
-        
         if(err.type === 'server-error') {
-          setSendStatus('err', 'السيرفر نائم. انتظر 30 ثانية وجرب مرة أخرى');
-        } else if(err.type === 'peer-unavailable') {
-          setSendStatus('err', 'الكود غير صحيح أو منتهي الصلاحية');
+          setSendStatus('err', 'السيرفر غير متصل. تأكد من أن السيرفر شغال');
         } else {
           setSendStatus('err', 'خطأ: ' + (err.message || err.type));
         }
@@ -171,18 +563,11 @@
     }
 
     async function sendFile(conn) {
-      conn.send(JSON.stringify({ 
-        t: 'meta', 
-        name: videoFile.name, 
-        size: videoFile.size, 
-        ft: videoFile.type || 'video/mp4' 
-      }));
-      
+      conn.send(JSON.stringify({ t: 'meta', name: videoFile.name, size: videoFile.size, ft: videoFile.type || 'video/mp4' }));
       await sleep(200);
 
       let offset = 0;
       lastUpd = { t: Date.now(), b: 0 };
-      
       setSendStatus('ok', '🚀 جارٍ إرسال الفيديو...');
 
       const sendNextChunk = () => {
@@ -247,19 +632,9 @@
       document.getElementById('send-status-txt').textContent = txt;
     }
 
-    /* ─────────────────────────────────────────
-       RECEIVE
-    ───────────────────────────────────────── */
-    async function connectToPeer() {
+    function connectToPeer() {
       const code = document.getElementById('code-input').value.trim();
-      if(!code) { 
-        alert('الرجاء إدخال الكود أولاً'); 
-        return; 
-      }
-
-      // اختبار اتصال السيرفر أولاً
-      const serverOk = await testServerConnection();
-      if(!serverOk) return;
+      if(!code) { alert('الرجاء إدخال الكود أولاً'); return; }
 
       document.getElementById('recv-s1').style.display = 'none';
       document.getElementById('recv-s2').style.display = 'block';
@@ -269,23 +644,19 @@
       document.getElementById('r-title').textContent = 'جارٍ الاتصال…';
       document.getElementById('r-sub').textContent = 'يرجى الانتظار';
 
-      if(peer) {
-        try { peer.destroy(); } catch(e) {}
-      }
+      if(peer) { try { peer.destroy(); } catch(e) {} }
 
+      console.log('Connecting to server:', YOUR_SERVER);
       peer = new Peer(PEER_CONFIG);
 
       peer.on('open', () => {
-        console.log('📥 Receiver ID:', peer.id);
+        console.log('✅ Receiver ID:', peer.id);
         document.getElementById('r-title').textContent = 'جارٍ الاتصال بالمرسل…';
         
-        const conn = peer.connect(code, { 
-          reliable: true,
-          serialization: 'binary'
-        });
+        const conn = peer.connect(code, { reliable: true, serialization: 'binary' });
 
         conn.on('open', () => {
-          console.log('📥 Connected to sender!');
+          console.log('✅ Connected to sender!');
           document.getElementById('r-title').textContent = '✅ متصل! في انتظار الفيديو…';
           document.getElementById('r-sub').textContent = 'لا تغلق هذه الصفحة';
         });
@@ -302,13 +673,9 @@
 
       peer.on('error', err => {
         console.error('Peer error:', err);
-        
-        if(err.type === 'server-error') {
-          document.getElementById('r-title').textContent = '❌ السيرفر غير متصل';
-          document.getElementById('r-sub').textContent = 'انتظر 30 ثانية وجرب مرة أخرى';
-        } else if(err.type === 'peer-unavailable') {
+        if(err.type === 'peer-unavailable') {
           document.getElementById('r-title').textContent = '❌ الكود غير صحيح';
-          document.getElementById('r-sub').textContent = 'تأكد من الكود ومن أن المرسل ما زال منتظراً';
+          document.getElementById('r-sub').textContent = 'تأكد من الكود ومن أن المرسل ما زال في صفحة الإرسال';
         } else {
           document.getElementById('r-title').textContent = '❌ خطأ';
           document.getElementById('r-sub').textContent = err.message || err.type;
@@ -322,11 +689,8 @@
         try {
           const m = JSON.parse(data);
           if(m.t === 'meta') {
-            chunks = []; 
-            receivedSize = 0;
-            totalSize = m.size; 
-            fileType = m.ft; 
-            fileName = m.name;
+            chunks = []; receivedSize = 0;
+            totalSize = m.size; fileType = m.ft; fileName = m.name;
             lastUpd = { t: Date.now(), b: 0 };
             
             document.getElementById('r-loader').style.display = 'none';
@@ -385,11 +749,9 @@
       a.click();
     }
 
-    /* ─────────────────────────────────────────
-       Helpers
-    ───────────────────────────────────────── */
     function copyCode() {
       const code = document.getElementById('peer-code').textContent;
+      if(!code || code.includes('جارٍ')) { alert('انتظر حتى يظهر الكود'); return; }
       navigator.clipboard.writeText(code).then(() => {
         const b = document.getElementById('copy-btn');
         b.innerHTML = '✅ تم النسخ!';
@@ -411,29 +773,18 @@
       return Math.round(s / 3600) + ' س';
     }
 
-    function sleep(ms) { 
-      return new Promise(r => setTimeout(r, ms)); 
-    }
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    /* ── Drag & drop ── */
     const dz = document.getElementById('dropzone');
     if(dz) {
-      dz.addEventListener('dragover', e => {
-        e.preventDefault(); 
-        dz.classList.add('drag-over');
-      });
-      
+      dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
       dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-      
       dz.addEventListener('drop', e => {
-        e.preventDefault(); 
-        dz.classList.remove('drag-over');
+        e.preventDefault(); dz.classList.remove('drag-over');
         const f = e.dataTransfer.files[0];
-        if(f && f.type.startsWith('video/')) {
-          onFileSelected({ target: { files: [f] } });
-        }
+        if(f && f.type.startsWith('video/')) onFileSelected({ target: { files: [f] } });
       });
     }
   </script>
 </body>
-</html>
+  </html>
