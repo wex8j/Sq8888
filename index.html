@@ -300,7 +300,6 @@
   <div class="bg-mesh"></div>
   <div class="bg-grid"></div>
 
-  <!-- ════════════════════ LANDING ════════════════════ -->
   <div id="screen-landing" class="screen active">
     <div class="logo">
       <div class="logo-icon">▶</div>
@@ -328,7 +327,6 @@
     </p>
   </div>
 
-  <!-- ════════════════════ SEND ════════════════════ -->
   <div id="screen-send" class="screen">
     <div class="panel">
       <button class="back-btn" onclick="goHome()">&#8592; رجوع</button>
@@ -392,7 +390,6 @@
     </div>
   </div>
 
-  <!-- ════════════════════ RECEIVE ════════════════════ -->
   <div id="screen-receive" class="screen">
     <div class="panel">
       <button class="back-btn" onclick="goHome()">&#8592; رجوع</button>
@@ -454,10 +451,9 @@
   </div>
 
   <script>
-    // ⚠️ سيرفرك على Railway
+    // سيرفرك على Railway
     const YOUR_SERVER = 'sq8888-production.up.railway.app';
     
-    // إعدادات PeerJS لـ Railway
     const PEER_CONFIG = {
       config: { 
         iceServers: [
@@ -468,7 +464,7 @@
       host: YOUR_SERVER,
       port: 443,
       secure: true,
-      path: '/',
+      path: '/peerjs',
       debug: 2
     };
 
@@ -529,7 +525,6 @@
 
       if(peer) { try { peer.destroy(); } catch(e) {} }
       
-      console.log('Connecting to server:', YOUR_SERVER);
       peer = new Peer(PEER_CONFIG);
 
       peer.on('open', id => {
@@ -554,11 +549,7 @@
 
       peer.on('error', err => {
         console.error('Peer error:', err);
-        if(err.type === 'server-error') {
-          setSendStatus('err', 'السيرفر غير متصل. تأكد من أن السيرفر شغال');
-        } else {
-          setSendStatus('err', 'خطأ: ' + (err.message || err.type));
-        }
+        setSendStatus('err', 'خطأ: ' + (err.message || err.type));
       });
     }
 
@@ -646,7 +637,6 @@
 
       if(peer) { try { peer.destroy(); } catch(e) {} }
 
-      console.log('Connecting to server:', YOUR_SERVER);
       peer = new Peer(PEER_CONFIG);
 
       peer.on('open', () => {
@@ -787,4 +777,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
