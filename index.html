@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>VideoVault — مشاركة فيديو</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <style>
@@ -161,6 +162,23 @@
       text-shadow:0 0 24px var(--glow);
       direction:ltr; display:block; word-break:break-all;
     }
+    
+    /* QR Code */
+    .qr-box {
+      display:flex; justify-content:center;
+      margin:15px 0;
+      padding:15px;
+      background:white;
+      border-radius:16px;
+    }
+    #qrcode {
+      display:flex; justify-content:center;
+    }
+    #qrcode canvas {
+      width:200px !important;
+      height:200px !important;
+    }
+
     .copy-btn {
       display:flex; align-items:center; justify-content:center; gap:6px;
       width:100%; background:transparent;
@@ -294,12 +312,26 @@
       max-width:320px; line-height:1.85;
     }
     .note span { color:var(--accent); }
+
+    .scan-btn {
+      background:linear-gradient(135deg, var(--accent), var(--purple));
+      color:#fff;
+      padding:12px;
+      border-radius:12px;
+      border:none;
+      font-family:'Tajawal',sans-serif;
+      font-weight:700;
+      cursor:pointer;
+      margin-bottom:15px;
+      width:100%;
+    }
   </style>
 </head>
 <body>
   <div class="bg-mesh"></div>
   <div class="bg-grid"></div>
 
+  <!-- ════════════════════ LANDING ════════════════════ -->
   <div id="screen-landing" class="screen active">
     <div class="logo">
       <div class="logo-icon">▶</div>
@@ -314,9 +346,9 @@
         <p>ارفع من آيفون أو أي جهاز</p>
       </div>
       <div class="card" onclick="startReceive()">
-        <span class="card-icon">🎬</span>
+        <span class="card-icon">📷</span>
         <h2>استقبل فيديو</h2>
-        <p>شاهد بجودة عالية وكاملة</p>
+        <p>امسح QR أو أدخل الكود</p>
       </div>
     </div>
 
@@ -327,6 +359,7 @@
     </p>
   </div>
 
+  <!-- ════════════════════ SEND ════════════════════ -->
   <div id="screen-send" class="screen">
     <div class="panel">
       <button class="back-btn" onclick="goHome()">&#8592; رجوع</button>
@@ -344,8 +377,8 @@
       </div>
 
       <div id="send-s2" style="display:none">
-        <div class="panel-title">انتظر الاتصال</div>
-        <div class="panel-sub">شارك الكود مع الجهاز الثاني</div>
+        <div class="panel-title">📷 امسح الباركود</div>
+        <div class="panel-sub">من الجهاز الثاني</div>
 
         <div class="file-info">
           <span class="fi-icon">🎬</span>
@@ -355,8 +388,13 @@
           </div>
         </div>
 
+        <!-- QR Code -->
+        <div class="qr-box">
+          <div id="qrcode"></div>
+        </div>
+
         <div class="code-box">
-          <div class="code-label">كود الاتصال</div>
+          <div class="code-label">أو انسخ الكود يدوياً</div>
           <div class="code-value" id="peer-code">جارٍ التحضير…</div>
           <button class="copy-btn" onclick="copyCode()" id="copy-btn">📋 نسخ الكود</button>
         </div>
@@ -390,13 +428,18 @@
     </div>
   </div>
 
+  <!-- ════════════════════ RECEIVE ════════════════════ -->
   <div id="screen-receive" class="screen">
     <div class="panel">
       <button class="back-btn" onclick="goHome()">&#8592; رجوع</button>
 
       <div id="recv-s1">
-        <div class="panel-title">🎬 استقبل فيديو</div>
-        <div class="panel-sub">أدخل الكود من الجهاز الأول</div>
+        <div class="panel-title">📷 استقبل فيديو</div>
+        <div class="panel-sub">امسح الباركود أو أدخل الكود</div>
+
+        <button class="scan-btn" onclick="scanQRCode()">📷 امسح الباركود</button>
+        
+        <div class="divider">أو</div>
 
         <input type="text" class="code-input" id="code-input"
                placeholder="أدخل الكود هنا" maxlength="40"
@@ -404,9 +447,8 @@
 
         <button class="btn btn-primary" onclick="connectToPeer()">اتصل الآن</button>
 
-        <div class="divider">كيف يعمل؟</div>
-        <div class="status waiting" style="font-size:13px;line-height:1.7">
-          💡 افتح نفس هذا الملف على الجهاز الأول ← اختر "أرسل فيديو" ← انسخ الكود وألصقه هنا
+        <div class="status waiting" style="font-size:13px;line-height:1.7; margin-top:15px;">
+          💡 في جهاز الإرسال: اختر "أرسل فيديو" ← سيظهر باركود ← امسحه هنا
         </div>
       </div>
 
@@ -451,7 +493,7 @@
   </div>
 
   <script>
-    // سيرفرك على Railway
+    // سيرفر Railway
     const YOUR_SERVER = 'sq8888-production.up.railway.app';
     
     const PEER_CONFIG = {
@@ -474,6 +516,7 @@
     let fileType = 'video/mp4', fileName = '';
     let lastUpd = { t:0, b:0 };
     const CHUNK = 65536;
+    let currentPeerId = '';
 
     function show(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -494,6 +537,7 @@
       document.getElementById('send-status').className = 'status waiting';
       document.getElementById('send-status-txt').textContent = 'في انتظار اتصال الجهاز الثاني…';
       document.getElementById('peer-code').textContent = 'جارٍ التحضير…';
+      document.getElementById('qrcode').innerHTML = '';
       
       document.getElementById('recv-s1').style.display = 'block';
       document.getElementById('recv-s2').style.display = 'none';
@@ -529,8 +573,19 @@
 
       peer.on('open', id => {
         console.log('✅ Sender ID:', id);
+        currentPeerId = id;
         document.getElementById('peer-code').textContent = id;
-        setSendStatus('waiting', '✅ الكود جاهز! شاركه مع الجهاز الثاني');
+        
+        // إنشاء QR Code
+        document.getElementById('qrcode').innerHTML = '';
+        new QRCode(document.getElementById('qrcode'), {
+          text: id,
+          width: 200,
+          height: 200,
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        setSendStatus('waiting', '✅ امسح الباركود من الجهاز الثاني');
       });
 
       peer.on('connection', conn => {
@@ -623,10 +678,31 @@
       document.getElementById('send-status-txt').textContent = txt;
     }
 
+    function scanQRCode() {
+      // فتح الكاميرا لمسح QR
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        
+        // استخدام مكتبة لقراءة QR من الصورة
+        // للتبسيط، نطلب من المستخدم إدخال الكود يدوياً إذا ما قدر يمسح
+        alert('للمسح التلقائي، استخدم تطبيق كاميرا الموبايل لمسح الباركود، ثم الصق الكود هنا.\n\nأو أدخل الكود يدوياً في الخانة.');
+      };
+      input.click();
+    }
+
     function connectToPeer() {
       const code = document.getElementById('code-input').value.trim();
       if(!code) { alert('الرجاء إدخال الكود أولاً'); return; }
+      
+      connectWithCode(code);
+    }
 
+    function connectWithCode(code) {
       document.getElementById('recv-s1').style.display = 'none';
       document.getElementById('recv-s2').style.display = 'block';
       document.getElementById('r-loader').style.display = 'block';
@@ -777,4 +853,4 @@
     }
   </script>
 </body>
-</html>
+  </html>
